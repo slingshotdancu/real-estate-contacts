@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ContactsProvider } from "@/context/ContactsContext";
+import { PersonalContactsProvider } from "@/context/PersonalContactsContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +28,14 @@ function RootLayoutNav() {
       <Stack.Screen name="detail/[id]" options={{ headerShown: false }} />
       <Stack.Screen
         name="form"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="personal/[id]"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="personal-form"
         options={{ presentation: "modal", headerShown: false }}
       />
     </Stack>
@@ -54,11 +63,13 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ContactsProvider>
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <PersonalContactsProvider>
+              <GestureHandlerRootView>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </PersonalContactsProvider>
           </ContactsProvider>
         </QueryClientProvider>
       </ErrorBoundary>
