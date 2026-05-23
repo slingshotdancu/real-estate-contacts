@@ -19,6 +19,8 @@ export const personalContactsTable = pgTable("personal_contacts", {
   phone: text("phone").notNull(),
   email: text("email").notNull(),
   notes: text("notes").default(""),
+  category: text("category").notNull().default("other"), // family, close_friend, friend, neighbor, other
+  relationship: text("relationship").default(""), // e.g., "Mom", "Best friend from college"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -10,8 +10,6 @@ import {
   useCreateContact,
   useUpdateContact,
   useDeleteContact,
-  PersonalContact,
-  useGetPersonalContacts,
 } from "@workspace/api-client-react";
 import { Stage } from "@/constants/stages";
 
@@ -31,17 +29,7 @@ export interface Contact {
   createdAt: string;
   updatedAt: string;
 }
-const { data, isLoading: loading, refetch, error } = useGetPersonalContacts();
 
-// Add this right after the hook call
-useEffect(() => {
-  if (error) {
-    console.error("Error fetching personal contacts:", error);
-  }
-  console.log("Personal contacts data:", data);
-}, [data, error]);
-
-const contacts = Array.isArray(data) ? data : [];
 type NewContact = Omit<Contact, "id" | "createdAt" | "updatedAt">;
 type UpdateContact = Partial<Omit<Contact, "id" | "createdAt" | "updatedAt">>;
 
@@ -59,16 +47,23 @@ const ContactsContext = createContext<ContactsContextValue | undefined>(
 );
 
 export function ContactsProvider({ children }: { children: ReactNode }) {
-  // Use the generated API hooks
-  const { data: contacts = [], isLoading: loading, refetch } = useGetContacts();
+  // Hooks MUST be inside the component, not at module level
+  const { data, isLoading: loading, refetch, error } = useGetContacts();
   const createMutation = useCreateContact();
   const updateMutation = useUpdateContact();
   const deleteMutation = useDeleteContact();
 
+  // Ensure contacts is always an array
+  const contacts = Array.isArray(data) ? data : [];
+
   // Import the API config to ensure base URL is set
   useEffect(() => {
     import("@/constants/api");
-  }, []);
+    if (error) {
+      console.error("Error fetching contacts:", error);
+    }
+    console.log("Contacts data:", data);
+  }, [data, error]);
 
   const addContact = useCallback(
     async (data: NewContact): Promise<Contact> => {
@@ -79,14 +74,12 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
           email: data.email,
           notes: data.notes || "",
           properties: data.properties || [],
-          // Cast to any to satisfy generated API type (InsertContactStage)
           stage: data.stage as any,
         },
       });
       
       await refetch();
       
-      // Convert the API response to match the Contact interface
       return {
         id: result.id.toString(),
         name: result.name,
@@ -148,7 +141,6 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
     [contacts]
   );
 
-  // Transform API contacts to match the Contact interface
   const transformedContacts: Contact[] = contacts.map((c: any) => ({
     id: c.id.toString(),
     name: c.name,

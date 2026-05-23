@@ -18,19 +18,12 @@ export interface PersonalContact {
   phone: string;
   email: string;
   notes: string;
+  category: string;
+  relationship: string;
   createdAt: string;
   updatedAt: string;
 }
-const { data, isLoading: loading, refetch, error } = useGetPersonalContacts();
 
-useEffect(() => {
-  if (error) {
-    console.error("Error fetching personal contacts:", error);
-  }
-  console.log("Personal contacts data:", data);
-}, [data, error]);
-
-const contacts = Array.isArray(data) ? data : [];
 type NewPersonalContact = Omit<PersonalContact, "id" | "createdAt" | "updatedAt">;
 type UpdatePersonalContact = Partial<Omit<PersonalContact, "id" | "createdAt" | "updatedAt">>;
 
@@ -48,14 +41,20 @@ const PersonalContactsContext = createContext<PersonalContactsContextValue | und
 );
 
 export function PersonalContactsProvider({ children }: { children: ReactNode }) {
-  const { data: contacts = [], isLoading: loading, refetch } = useGetPersonalContacts();
+  const { data, isLoading: loading, refetch, error } = useGetPersonalContacts();
   const createMutation = useCreatePersonalContact();
   const updateMutation = useUpdatePersonalContact();
   const deleteMutation = useDeletePersonalContact();
 
+  const contacts = Array.isArray(data) ? data : [];
+
   useEffect(() => {
     import("@/constants/api");
-  }, []);
+    if (error) {
+      console.error("Error fetching personal contacts:", error);
+    }
+    console.log("Personal contacts data:", data);
+  }, [data, error]);
 
   const addContact = useCallback(
     async (data: NewPersonalContact): Promise<PersonalContact> => {
@@ -65,6 +64,8 @@ export function PersonalContactsProvider({ children }: { children: ReactNode }) 
           phone: data.phone,
           email: data.email,
           notes: data.notes || "",
+          category: data.category || "other",
+          relationship: data.relationship || "",
         },
       });
       
@@ -76,6 +77,8 @@ export function PersonalContactsProvider({ children }: { children: ReactNode }) 
         phone: result.phone,
         email: result.email,
         notes: result.notes || "",
+        category: result.category || "other",
+        relationship: result.relationship || "",
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
       };
@@ -92,6 +95,8 @@ export function PersonalContactsProvider({ children }: { children: ReactNode }) 
           phone: data.phone,
           email: data.email,
           notes: data.notes,
+          category: data.category,
+          relationship: data.relationship,
         },
       });
       await refetch();
@@ -118,6 +123,8 @@ export function PersonalContactsProvider({ children }: { children: ReactNode }) 
         phone: contact.phone,
         email: contact.email,
         notes: contact.notes || "",
+        category: contact.category || "other",
+        relationship: contact.relationship || "",
         createdAt: contact.createdAt,
         updatedAt: contact.updatedAt,
       };
@@ -125,12 +132,14 @@ export function PersonalContactsProvider({ children }: { children: ReactNode }) 
     [contacts]
   );
 
-const transformedContacts: PersonalContact[] = contacts.map((c: any) => ({  
+  const transformedContacts: PersonalContact[] = contacts.map((c: any) => ({  
     id: c.id.toString(),
     name: c.name,
     phone: c.phone,
     email: c.email,
     notes: c.notes || "",
+    category: c.category || "other",
+    relationship: c.relationship || "",
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
   }));

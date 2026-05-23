@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { PersonalContactCategory } from './personalContactCategory';
 
 export interface PersonalContact {
   id: number;
@@ -12,6 +13,8 @@ export interface PersonalContact {
   phone: string;
   email: string;
   notes?: string;
+  category: PersonalContactCategory;
+  relationship?: string;
   createdAt: Date;
   updatedAt: Date;
 }

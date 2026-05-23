@@ -74,28 +74,67 @@ export interface UpdateContact {
   stage?: UpdateContactStage;
 }
 
+export type PersonalContactCategory = typeof PersonalContactCategory[keyof typeof PersonalContactCategory];
+
+
+export const PersonalContactCategory = {
+  family: 'family',
+  close_friend: 'close_friend',
+  friend: 'friend',
+  neighbor: 'neighbor',
+  other: 'other',
+} as const;
+
 export interface PersonalContact {
   id: number;
   name: string;
   phone: string;
   email: string;
   notes?: string;
+  category: PersonalContactCategory;
+  relationship?: string;
   createdAt: string;
   updatedAt: string;
 }
+
+export type InsertPersonalContactCategory = typeof InsertPersonalContactCategory[keyof typeof InsertPersonalContactCategory];
+
+
+export const InsertPersonalContactCategory = {
+  family: 'family',
+  close_friend: 'close_friend',
+  friend: 'friend',
+  neighbor: 'neighbor',
+  other: 'other',
+} as const;
 
 export interface InsertPersonalContact {
   name: string;
   phone: string;
   email: string;
   notes?: string;
+  category?: InsertPersonalContactCategory;
+  relationship?: string;
 }
+
+export type UpdatePersonalContactCategory = typeof UpdatePersonalContactCategory[keyof typeof UpdatePersonalContactCategory];
+
+
+export const UpdatePersonalContactCategory = {
+  family: 'family',
+  close_friend: 'close_friend',
+  friend: 'friend',
+  neighbor: 'neighbor',
+  other: 'other',
+} as const;
 
 export interface UpdatePersonalContact {
   name?: string;
   phone?: string;
   email?: string;
   notes?: string;
+  category?: UpdatePersonalContactCategory;
+  relationship?: string;
 }
 
 export interface Error {
@@ -105,5 +144,10 @@ export interface Error {
 export type DeleteContact200 = {
   message?: string;
   contact?: Contact;
+};
+
+export type DeletePersonalContact200 = {
+  message?: string;
+  contact?: PersonalContact;
 };
 

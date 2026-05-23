@@ -152,6 +152,8 @@ export const GetPersonalContactsResponseItem = zod.object({
   "phone": zod.string(),
   "email": zod.string(),
   "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']),
+  "relationship": zod.string().optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -166,7 +168,9 @@ export const CreatePersonalContactBody = zod.object({
   "name": zod.string(),
   "phone": zod.string(),
   "email": zod.string(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']).optional(),
+  "relationship": zod.string().optional()
 })
 
 
@@ -183,6 +187,8 @@ export const GetPersonalContactResponse = zod.object({
   "phone": zod.string(),
   "email": zod.string(),
   "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']),
+  "relationship": zod.string().optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -199,7 +205,9 @@ export const UpdatePersonalContactBody = zod.object({
   "name": zod.string().optional(),
   "phone": zod.string().optional(),
   "email": zod.string().optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']).optional(),
+  "relationship": zod.string().optional()
 })
 
 export const UpdatePersonalContactResponse = zod.object({
@@ -208,6 +216,8 @@ export const UpdatePersonalContactResponse = zod.object({
   "phone": zod.string(),
   "email": zod.string(),
   "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']),
+  "relationship": zod.string().optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -218,6 +228,21 @@ export const UpdatePersonalContactResponse = zod.object({
  */
 export const DeletePersonalContactParams = zod.object({
   "id": zod.coerce.number()
+})
+
+export const DeletePersonalContactResponse = zod.object({
+  "message": zod.string().optional(),
+  "contact": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "email": zod.string(),
+  "notes": zod.string().optional(),
+  "category": zod.enum(['family', 'close_friend', 'friend', 'neighbor', 'other']),
+  "relationship": zod.string().optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}).optional()
 })
 
 

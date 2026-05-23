@@ -247,6 +247,21 @@ paths:
       responses:
         "200":
           description: Personal contact deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  contact:
+                    $ref: "#/components/schemas/PersonalContact"
+        "404":
+          description: Personal contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
@@ -359,6 +374,11 @@ components:
           type: string
         notes:
           type: string
+        category:
+          type: string
+          enum: [family, close_friend, friend, neighbor, other]
+        relationship:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -370,9 +390,10 @@ components:
         - name
         - phone
         - email
+        - category
         - createdAt
         - updatedAt
-    
+
     InsertPersonalContact:
       type: object
       properties:
@@ -384,11 +405,16 @@ components:
           type: string
         notes:
           type: string
+        category:
+          type: string
+          enum: [family, close_friend, friend, neighbor, other]
+        relationship:
+          type: string
       required:
         - name
         - phone
         - email
-    
+
     UpdatePersonalContact:
       type: object
       properties:
@@ -400,7 +426,12 @@ components:
           type: string
         notes:
           type: string
-    
+        category:
+          type: string
+          enum: [family, close_friend, friend, neighbor, other]
+        relationship:
+          type: string
+
     Error:
       type: object
       properties:

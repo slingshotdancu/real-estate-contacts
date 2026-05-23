@@ -22,6 +22,7 @@ import type {
 import type {
   Contact,
   DeleteContact200,
+  DeletePersonalContact200,
   Error,
   HealthStatus,
   InsertContact,
@@ -803,9 +804,9 @@ export const getDeletePersonalContactUrl = (id: number,) => {
 /**
  * @summary Delete a personal contact
  */
-export const deletePersonalContact = async (id: number, options?: RequestInit): Promise<void> => {
+export const deletePersonalContact = async (id: number, options?: RequestInit): Promise<DeletePersonalContact200> => {
 
-  return customFetch<void>(getDeletePersonalContactUrl(id),
+  return customFetch<DeletePersonalContact200>(getDeletePersonalContactUrl(id),
   {
     ...options,
     method: 'DELETE'
@@ -817,7 +818,7 @@ export const deletePersonalContact = async (id: number, options?: RequestInit): 
 
 
 
-export const getDeletePersonalContactMutationOptions = <TError = ErrorType<unknown>,
+export const getDeletePersonalContactMutationOptions = <TError = ErrorType<Error>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePersonalContact>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deletePersonalContact>>, TError,{id: number}, TContext> => {
 
@@ -846,12 +847,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeletePersonalContactMutationResult = NonNullable<Awaited<ReturnType<typeof deletePersonalContact>>>
 
-    export type DeletePersonalContactMutationError = ErrorType<unknown>
+    export type DeletePersonalContactMutationError = ErrorType<Error>
 
     /**
  * @summary Delete a personal contact
  */
-export const useDeletePersonalContact = <TError = ErrorType<unknown>,
+export const useDeletePersonalContact = <TError = ErrorType<Error>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePersonalContact>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deletePersonalContact>>,

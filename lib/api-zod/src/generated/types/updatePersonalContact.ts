@@ -5,10 +5,13 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { UpdatePersonalContactCategory } from './updatePersonalContactCategory';
 
 export interface UpdatePersonalContact {
   name?: string;
   phone?: string;
   email?: string;
   notes?: string;
+  category?: UpdatePersonalContactCategory;
+  relationship?: string;
 }
