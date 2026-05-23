@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,6 +9,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: contacts
+    description: Contact management operations
+  - name: personal
+    description: Personal contact management operations
 paths:
   /healthz:
     get:
@@ -24,6 +27,227 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  
+  /contacts:
+    get:
+      operationId: getContacts
+      tags: [contacts]
+      summary: Get all contacts
+      description: Returns a list of all business contacts
+      responses:
+        "200":
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contact"
+    
+    post:
+      operationId: createContact
+      tags: [contacts]
+      summary: Create a new contact
+      description: Creates a new business contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsertContact"
+      responses:
+        "201":
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /contacts/{id}:
+    get:
+      operationId: getContact
+      tags: [contacts]
+      summary: Get a contact by ID
+      description: Returns a single business contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contact found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+    put:
+      operationId: updateContact
+      tags: [contacts]
+      summary: Update a contact
+      description: Updates an existing business contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContact"
+      responses:
+        "200":
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+    delete:
+      operationId: deleteContact
+      tags: [contacts]
+      summary: Delete a contact
+      description: Deletes a business contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contact deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  contact:
+                    $ref: "#/components/schemas/Contact"
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /personal:
+    get:
+      operationId: getPersonalContacts
+      tags: [personal]
+      summary: Get all personal contacts
+      description: Returns a list of all personal contacts
+      responses:
+        "200":
+          description: List of personal contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PersonalContact"
+    
+    post:
+      operationId: createPersonalContact
+      tags: [personal]
+      summary: Create a new personal contact
+      description: Creates a new personal contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsertPersonalContact"
+      responses:
+        "201":
+          description: Personal contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalContact"
+
+  /personal/{id}:
+    get:
+      operationId: getPersonalContact
+      tags: [personal]
+      summary: Get a personal contact by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Personal contact found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalContact"
+    
+    put:
+      operationId: updatePersonalContact
+      tags: [personal]
+      summary: Update a personal contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePersonalContact"
+      responses:
+        "200":
+          description: Personal contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalContact"
+    
+    delete:
+      operationId: deletePersonalContact
+      tags: [personal]
+      summary: Delete a personal contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Personal contact deleted successfully
+
 components:
   schemas:
     HealthStatus:
@@ -33,4 +257,154 @@ components:
           type: string
       required:
         - status
-
+    
+    Property:
+      type: object
+      properties:
+        id:
+          type: string
+        address:
+          type: string
+      required:
+        - id
+        - address
+    
+    Contact:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+        properties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Property"
+        stage:
+          type: string
+          enum: [lead, prospect, client, purchaser]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - phone
+        - email
+        - stage
+        - createdAt
+        - updatedAt
+    
+    InsertContact:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+        properties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Property"
+        stage:
+          type: string
+          enum: [lead, prospect, client, purchaser]
+      required:
+        - name
+        - phone
+        - email
+    
+    UpdateContact:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+        properties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Property"
+        stage:
+          type: string
+          enum: [lead, prospect, client, purchaser]
+    
+    PersonalContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - phone
+        - email
+        - createdAt
+        - updatedAt
+    
+    InsertPersonalContact:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+      required:
+        - name
+        - phone
+        - email
+    
+    UpdatePersonalContact:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        notes:
+          type: string
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

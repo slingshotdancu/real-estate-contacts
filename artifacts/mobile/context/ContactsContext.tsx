@@ -3,10 +3,16 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useState,
   ReactNode,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  useGetContacts,
+  useCreateContact,
+  useUpdateContact,
+  useDeleteContact,
+  PersonalContact,
+  useGetPersonalContacts,
+} from "@workspace/api-client-react";
 import { Stage } from "@/constants/stages";
 
 export interface Property {
@@ -25,7 +31,17 @@ export interface Contact {
   createdAt: string;
   updatedAt: string;
 }
+const { data, isLoading: loading, refetch, error } = useGetPersonalContacts();
 
+// Add this right after the hook call
+useEffect(() => {
+  if (error) {
+    console.error("Error fetching personal contacts:", error);
+  }
+  console.log("Personal contacts data:", data);
+}, [data, error]);
+
+const contacts = Array.isArray(data) ? data : [];
 type NewContact = Omit<Contact, "id" | "createdAt" | "updatedAt">;
 type UpdateContact = Partial<Omit<Contact, "id" | "createdAt" | "updatedAt">>;
 
@@ -42,137 +58,119 @@ const ContactsContext = createContext<ContactsContextValue | undefined>(
   undefined
 );
 
-const STORAGE_KEY = "@jh_contacts_v1";
-
-function generateId(): string {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-}
-
-const SAMPLE_CONTACTS: Contact[] = [
-  {
-    id: "sample-1",
-    name: "Sarah Johnson",
-    phone: "(415) 555-0182",
-    email: "sarah.johnson@email.com",
-    notes:
-      "Very motivated buyer. Pre-approved for $850K. Prefers open floor plans and updated kitchens. Needs to be near good schools.",
-    properties: [
-      { id: "p1", address: "2847 Pacific Avenue, San Francisco, CA" },
-      { id: "p2", address: "1120 Green Street, San Francisco, CA" },
-    ],
-    stage: "lead",
-    createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-  {
-    id: "sample-2",
-    name: "Michael Thompson",
-    phone: "(650) 555-0247",
-    email: "m.thompson@techcorp.com",
-    notes:
-      "Relocating from Seattle. Looking for a 4BR+ with a home office. Budget up to $1.2M. Flexible on timeline.",
-    properties: [{ id: "p3", address: "3512 Broadway, San Francisco, CA" }],
-    stage: "prospect",
-    createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-  },
-  {
-    id: "sample-3",
-    name: "Emily & David Rodriguez",
-    phone: "(510) 555-0309",
-    email: "emily.rodriguez@gmail.com",
-    notes:
-      "First-time buyers. Very excited. Already visited 3 properties. Leaning toward the Noe Valley listing.",
-    properties: [
-      { id: "p4", address: "458 Sanchez Street, Noe Valley, SF" },
-      { id: "p5", address: "2211 Diamond Street, Noe Valley, SF" },
-      { id: "p6", address: "87 Clipper Street, Noe Valley, SF" },
-    ],
-    stage: "client",
-    createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-  {
-    id: "sample-4",
-    name: "Robert Chen",
-    phone: "(415) 555-0418",
-    email: "rchen@enterprise.io",
-    notes:
-      "Investment buyer. Closed on 738 Jackson St last month. Looking for next opportunity in Pacific Heights.",
-    properties: [{ id: "p7", address: "738 Jackson Street, Pacific Heights, SF" }],
-    stage: "purchaser",
-    createdAt: new Date(Date.now() - 60 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-  },
-];
-
 export function ContactsProvider({ children }: { children: ReactNode }) {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use the generated API hooks
+  const { data: contacts = [], isLoading: loading, refetch } = useGetContacts();
+  const createMutation = useCreateContact();
+  const updateMutation = useUpdateContact();
+  const deleteMutation = useDeleteContact();
 
+  // Import the API config to ensure base URL is set
   useEffect(() => {
-    (async () => {
-      try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setContacts(JSON.parse(stored));
-        } else {
-          setContacts(SAMPLE_CONTACTS);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_CONTACTS));
-        }
-      } catch {
-        setContacts(SAMPLE_CONTACTS);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  const persist = useCallback(async (updated: Contact[]) => {
-    setContacts(updated);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    import("@/constants/api");
   }, []);
 
   const addContact = useCallback(
     async (data: NewContact): Promise<Contact> => {
-      const now = new Date().toISOString();
-      const contact: Contact = {
-        ...data,
-        id: generateId(),
-        createdAt: now,
-        updatedAt: now,
+      const result = await createMutation.mutateAsync({
+        data: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          notes: data.notes || "",
+          properties: data.properties || [],
+          // Cast to any to satisfy generated API type (InsertContactStage)
+          stage: data.stage as any,
+        },
+      });
+      
+      await refetch();
+      
+      // Convert the API response to match the Contact interface
+      return {
+        id: result.id.toString(),
+        name: result.name,
+        phone: result.phone,
+        email: result.email,
+        notes: result.notes || "",
+        properties: (result.properties as Property[]) || [],
+        stage: result.stage as Stage,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
       };
-      await persist([contact, ...contacts]);
-      return contact;
     },
-    [contacts, persist]
+    [createMutation, refetch]
   );
 
   const updateContact = useCallback(
     async (id: string, data: UpdateContact): Promise<void> => {
-      const updated = contacts.map((c) =>
-        c.id === id ? { ...c, ...data, updatedAt: new Date().toISOString() } : c
-      );
-      await persist(updated);
+      await updateMutation.mutateAsync({
+        id: parseInt(id),
+        data: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          notes: data.notes,
+          properties: data.properties,
+          stage: data.stage as any,
+        },
+      });
+      await refetch();
     },
-    [contacts, persist]
+    [updateMutation, refetch]
   );
 
   const deleteContact = useCallback(
     async (id: string): Promise<void> => {
-      await persist(contacts.filter((c) => c.id !== id));
+      await deleteMutation.mutateAsync({ id: parseInt(id) });
+      await refetch();
     },
-    [contacts, persist]
+    [deleteMutation, refetch]
   );
 
   const getContact = useCallback(
-    (id: string): Contact | undefined => contacts.find((c) => c.id === id),
+    (id: string): Contact | undefined => {
+      const contact = contacts.find((c: any) => c.id.toString() === id);
+      if (!contact) return undefined;
+      
+      return {
+        id: contact.id.toString(),
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        notes: contact.notes || "",
+        properties: (contact.properties as Property[]) || [],
+        stage: contact.stage as Stage,
+        createdAt: contact.createdAt,
+        updatedAt: contact.updatedAt,
+      };
+    },
     [contacts]
   );
 
+  // Transform API contacts to match the Contact interface
+  const transformedContacts: Contact[] = contacts.map((c: any) => ({
+    id: c.id.toString(),
+    name: c.name,
+    phone: c.phone,
+    email: c.email,
+    notes: c.notes || "",
+    properties: (c.properties as Property[]) || [],
+    stage: c.stage as Stage,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+  }));
+
   return (
     <ContactsContext.Provider
-      value={{ contacts, loading, addContact, updateContact, deleteContact, getContact }}
+      value={{
+        contacts: transformedContacts,
+        loading,
+        addContact,
+        updateContact,
+        deleteContact,
+        getContact,
+      }}
     >
       {children}
     </ContactsContext.Provider>
