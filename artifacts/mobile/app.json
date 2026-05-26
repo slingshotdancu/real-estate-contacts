@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.danieljobe.realestatecontacts",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {},
     "web": {
